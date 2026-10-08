@@ -49,7 +49,7 @@ class SalleViewSet(viewsets.ModelViewSet):
         fin_str = request.query_params.get("fin")
 
         if not debut_str or not fin_str:
-            return Response("debut and fin are required", status=400)
+            return Response("start and end periods are required", status=400)
 
         debut = parse_datetime(debut_str)
         fin = parse_datetime(fin_str)
