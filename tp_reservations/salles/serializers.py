@@ -22,11 +22,11 @@ class SalleSerializer(serializers.ModelSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
-    read_only_field = ["utilisateur"]
 
     class Meta:
         model = Reservation
         fields = ["id", "salle", "utilisateur", "debut", "fin", "motif", "statut", "cree_le"]
+        read_only_fields = ["utilisateur"]
 
 
     def validate(self, data):
@@ -36,12 +36,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         # checking if they dont overlap
         # get all the reservations for that class that are still pending
         reservations = Reservation.objects.filter(salle=data["salle"], fin__gt=datetime.now(),
-                                                      statut_in=["CONFIRMEE"])
+                                                      statut=Reservation.Statut.CONFIRMEE)
         for r in reservations:
-            if data["debut"] < r.debut < data["fin"]:
-                raise serializers.ValidationError("The Start time overlaps with a reservation")
-            if data["debut"] < r.fin < data["fin"]:
-                raise serializers.ValidationError("The end time overlaps with a reservation")
+            if data["debut"] < r.fin and data["fin"] > r.debut:
+                raise serializers.ValidationError("This time slot overlaps with an existing confirmed reservation")
 
         return data
 

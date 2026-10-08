@@ -12,6 +12,8 @@ from rest_framework.decorators import action
 from .serializers import *
 from .permissions import *
 from .pagination import *
+from django.utils.dateparse import parse_datetime
+from rest_framework.response import Response
 
 # TODO : votre code ici
 
@@ -30,15 +32,46 @@ class SalleViewSet(viewsets.ModelViewSet):
     pagination_class = ReservationPagination
     permission_classes = [IsAdminOrReadOnly] # assuming that the staff here is an admin user
 
+    def get_queryset(self):
+        reservations = Reservation.objects.all()
+        salle = self.request.query_params.get("salle")
+        date = self.request.query_params.get("date")
+        if salle:
+            reservations = reservations.filter(salle__nom=salle.nom)
+        if date:
+            reservations = reservations.filter(debut__date=date)
+        return reservations
+
     @action(detail=True, methods=["get"])
     def occupation(self,request):
-        queryset = Reservation.objects.select_related("salle")
-        classId = self.kwargs["nom"]
-        start = self.request.query_params.get("debut")
-        end = self.request.query_params.get("fin")
-        if start and end:
-            queryset = queryset.filter(salle__nom=classId)
-        return queryset
+        salle = self.get_object()
+
+        debut_str = request.query_params.get("debut")
+        fin_str = request.query_params.get("fin")
+
+        if not debut_str or not fin_str:
+            return Response({"detail": "debut and fin are required"}, status=400)
+
+        debut = parse_datetime(debut_str)
+        fin = parse_datetime(fin_str)
+
+        if fin <= debut:
+            return Response({"detail": "start must be after debut"}, status=400)
+
+        if not salle.exist():
+            return Response({"detail": "class doesnot exist"}, status=400)
+
+        # now we get all confirmed reservations strictly inside the period
+        reservations = Reservation.objects.filter(salle=salle,statut=Reservation.Statut.CONFIRMEE,debut__gte=debut,fin__lte=fin,)
+
+        time_reserved = 0
+        for r in reservations:
+            time_reserved += (r.fin - r.debut)
+
+        period_duration = fin - debut
+        rate = time_reserved / period_duration
+
+        return Response({"taux_occupation": rate})
 
 
 
