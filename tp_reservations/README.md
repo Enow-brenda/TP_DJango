@@ -1,36 +1,24 @@
-# TP : API de réservation de salles
+# TP : School hall reservation API
 
-Auteur : Enow Eweh Mac Brenda (travail individuel)
+Author : Enow Eweh Mac Brenda
 
 ## Installation
 
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed
 python manage.py runserver
 
-Comptes de test : alice, bob, charlie (motdepasse123). Super-utilisateur : admin / admin123.
 
 ## Endpoints
 
-| Route | Methodes | Permissions |
-|-------|----------|-------------|
-| /api/salles/ | GET, POST | lecture pour tous, ecriture admin |
-| /api/salles/{id}/ | GET, PUT, PATCH, DELETE | lecture pour tous, ecriture admin |
-| /api/reservations/ | GET, POST | lecture pour tous, creation par un utilisateur connecte |
-| /api/reservations/{id}/ | GET, PUT, PATCH, DELETE | modification et suppression par l'auteur seulement |
-| /api/salles/{id}/occupation/ | GET | parametres debut et fin au format ISO 8601 |
+- /api/salles/ : GET and POST (write restricted to admin)
+- /api/salles/{id}/ : GET, PUT, PATCH, DELETE (write restricted to admin)
+- /api/reservations/ : GET and POST (create by an authenticated user)
+- /api/reservations/{id}/ : GET, PUT, PATCH, DELETE (edit by the author only)
+- /api/salles/{id}/occupation/?debut=...&fin=... : occupancy rate of the room (ISO 8601 format)
 
-## Choix de conception et difficultes
+## Notes
 
-Pour le chevauchement, je regarde si le debut ou la fin d'une reservation deja confirmee de la
-meme salle tombe dans l'intervalle de la nouvelle reservation. Si un des deux tombe dedans, il y a
-chevauchement. Deux reservations qui se touchent (l'une finit a 10h et l'autre commence a 10h) ne se
-chevauchent pas, et une reservation annulee ne bloque rien.
-
-Pour l'occupation je prends seulement les reservations CONFIRMEE et je ne compte que la partie qui
-se trouve dans la periode demandee, puis je divise par la duree de la periode.
-
-Difficulte : les champs absents en PATCH, et le decoupage des reservations qui depassent la periode.
+Overlap : two reservations overlap if one of them starts before the end of the other
+and ends after its start. Cancelled reservations don't count. For the occupancy rate
+we only count the part of the reservations that is inside the requested period.

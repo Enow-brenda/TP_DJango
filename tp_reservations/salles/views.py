@@ -45,21 +45,20 @@ class SalleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def occupation(self,request):
         salle = self.get_object()
-
         debut_str = request.query_params.get("debut")
         fin_str = request.query_params.get("fin")
 
         if not debut_str or not fin_str:
-            return Response({"detail": "debut and fin are required"}, status=400)
+            return Response("debut and fin are required", status=400)
 
         debut = parse_datetime(debut_str)
         fin = parse_datetime(fin_str)
 
         if fin <= debut:
-            return Response({"detail": "start must be after debut"}, status=400)
+            return Response("start must be after debut", status=400)
 
         if not salle.exist():
-            return Response({"detail": "class doesnot exist"}, status=400)
+            return Response("class doesnot exist", status=404)
 
         # now we get all confirmed reservations strictly inside the period
         reservations = Reservation.objects.filter(salle=salle,statut=Reservation.Statut.CONFIRMEE,debut__gte=debut,fin__lte=fin,)
