@@ -22,10 +22,12 @@ class SalleSerializer(serializers.ModelSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
+    read_only_field = ["utilisateur"]
+
     class Meta:
         model = Reservation
         fields = ["id", "salle", "utilisateur", "debut", "fin", "motif", "statut", "cree_le"]
-        extra_kwargs = { }
+
 
     def validate(self, data):
         if data["fin"] <= data["debut"]:
