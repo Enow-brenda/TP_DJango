@@ -28,7 +28,7 @@ class SalleViewSet(viewsets.ModelViewSet):
     queryset = Salle.objects.all()
     serializer_class = SalleSerializer
     pagination_class = ReservationPagination
-    permission_classes = [IsAdminUser] # assuming that the staff here is an admin user
+    permission_classes = [IsAdminOrReadOnly] # assuming that the staff here is an admin user
 
     @action(detail=True, methods=["get"])
     def occupation(self,request):
@@ -37,7 +37,7 @@ class SalleViewSet(viewsets.ModelViewSet):
         start = self.request.query_params.get("debut")
         end = self.request.query_params.get("fin")
         if start and end:
-            queryset = queryset.filter(salle__nom=classId, )
+            queryset = queryset.filter(salle__nom=classId)
         return queryset
 
 

@@ -34,7 +34,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         # checking if they dont overlap
         # get all the reservations for that class that are still pending
         reservations = Reservation.objects.filter(salle=data["salle"], fin__gt=datetime.now(),
-                                                      statut_in=["CONFIRMEE", "Confirmée"])
+                                                      statut_in=["CONFIRMEE"])
         for r in reservations:
             if data["debut"] < r.debut < data["fin"]:
                 raise serializers.ValidationError("The Start time overlaps with a reservation")
